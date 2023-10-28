@@ -47,7 +47,7 @@ router.post('/createUser', async (req, res) => {
 
         const cookieOptions = {
             expires: expirationDate,
-            sameSite: "lax",
+            sameSite: "none",
             secure: true,
             httpOnly: false,
         };
@@ -112,7 +112,7 @@ router.post('/verifyUser', async (req, res) => {
 
         const cookieOptions = {
             expires: expirationDate,
-            sameSite: "lax",
+            sameSite: "none",
             secure: true,
             httpOnly: false,
         };
@@ -182,7 +182,7 @@ router.get("/logout", (req, res) => {
     console.log(expirationDate);
     const cookieOptions = {
         expires: expirationDate,
-        sameSite: "lax",
+        sameSite: "none",
         secure: true,
         httpOnly: false,
     };
