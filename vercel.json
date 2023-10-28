@@ -1,0 +1,6 @@
+{
+    "version": 2,
+    "name": "assetnexus",
+    "builds": [{ "src": "*.js", "use": "@vercel/node" }],
+    "routes": [{ "src": "/(.*)", "dest": "/" }]
+}
