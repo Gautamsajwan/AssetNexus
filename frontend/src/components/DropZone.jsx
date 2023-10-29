@@ -137,10 +137,11 @@ function DropZone({ className }) {
         }
     }
 
-    useEffect(()=>{
-        console.log("Dropzone.jsx")
-        checkLoginStatus();
-    })
+    // Below snippet line is commented just because cookie is giving error in production
+    // useEffect(()=>{
+    //     console.log("Dropzone.jsx")
+    //     checkLoginStatus();
+    // })
 
     return (
         <div className="pb-7 space-y-7 font-montserrat text-white cursor-pointer">
