@@ -1,4 +1,4 @@
-const filterOptions = document.querySelectorAll(".filter button"),
+const filterOptions = document.querySelectorAll(".options button"),
     filterName = document.querySelector(".filter-info .name"),
     filterValue = document.querySelector(".filter-info .value"),
     filterSlider = document.querySelector(".slider input"),
@@ -13,6 +13,7 @@ const filterOptions = document.querySelectorAll(".filter button"),
 let brightness = "100", saturation = "100", inversion = "0", grayscale = "0";
 let rotate = 0, flipHorizontal = 1, flipVertical = 1;
 var file;
+let baseURL = "https://asset-nexus-os62.vercel.app"
 
 // const loadImage = () => {
 //     let file = fileInput.files[0];
@@ -113,7 +114,7 @@ const updateAsset = async(dataUrl)=> {
         formData.append("asset", dataURLToFile(dataUrl, 'image.png'));
         console.log("Form", formData);
         
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/file/updateImage/${assetId}`, {
+        const response = await fetch(`${baseURL}/file/updateImage/${assetId}`, {
             method: 'PUT',
             body: formData
         });

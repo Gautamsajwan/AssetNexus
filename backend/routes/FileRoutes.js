@@ -94,11 +94,16 @@ router.post('/upload', upload.single('asset'), async (req, res) => {
         fs.unlinkSync(path)
 
         res.status(200).json({
+            success: true,
+            msg: "asset uploaded successfully",
             latestAsset: InsertAsset
         })
     } catch (error) {
         console.error(error);
-        res.status(500).send('Internal server error')
+        res.status(500).json({
+            success: false,
+            msg: "internal server error"
+        })
     }
 })
 
@@ -188,12 +193,16 @@ router.post('/multiple', upload.array('assets'), async (req, res) => {
 
         const result = await Promise.all(promises)
         res.status(200).json({
+            success: true,
+            msg: "asset uploaded successfully",
             brand: SearchBrand
-            // result: result
         })
     } catch (error) {
         console.error(error);
-        res.status(500).send('Internal server error')
+        res.status(500).json({
+            success: false,
+            msg: "internal server error"
+        })
     }
 })
 

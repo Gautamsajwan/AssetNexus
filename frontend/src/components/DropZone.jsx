@@ -55,17 +55,13 @@ function DropZone({ className }) {
                 method: 'POST',
                 body: data,
             });
-
-            console.log(response)
-            if (response.ok) {
-                const data = await response.json();
-                if (data) {
-                    toast.success("File uploaded successfully")
-                } else {
-                    toast.error('File size exceeds 10MB limit');
-                }
+            
+            const data2 = await response.json();
+            if (data2.success) {
+                toast.success(data2.msg);
             } else {
-                toast.error(response.statusText);
+                toast.dismiss();
+                toast.error(data2.msg);
             }
         } catch (error) {
             console.error('Internal server error', error);
@@ -95,16 +91,12 @@ function DropZone({ className }) {
                 body: data,
             });
 
-            console.log(response)
-            if (response.ok) {
-                const data = await response.json();
-                if (data) {
-                    toast.success('Files uploaded successfully');
-                } else {
-                    toast.error('File size exceeds 10MB limit');
-                }
+            const data2 = await response.json();
+            if (data2.success) {
+                toast.success(data2.msg);
             } else {
-                toast.error(response.statusText);
+                toast.dismiss();
+                toast.error(data2.msg);
             }
         } catch (error) {
             console.error('Internal server error', error);
