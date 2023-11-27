@@ -55,7 +55,7 @@ function Music({source, fileName, musicId}) {
         <HiOutlineDocumentDownload onClick={handleDownload} className="w-full h-full hover:text-green-400 cursor-pointer"/>
         <MdOutlineDeleteOutline onClick={handleDelete} className="w-full h-full hover:text-red-400 cursor-pointer"/>
       </div>
-      <div className="mt-3 w-full h-14 flex items-center">
+      <div className="mt-3 w-full h-14 flex items-center justify-center">
         <audio src={source} controls className="px-[6px] py-1"></audio>
       </div>
     </div>
