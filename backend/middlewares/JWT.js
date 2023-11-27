@@ -3,7 +3,7 @@ import 'dotenv/config'
 
 const fetchUser = (req, res, next) => {
     const accessToken = req.cookies["UserCookie"]
-    console.log("Middleware")
+    console.log("Middleware for checking user")
 
     if (!accessToken) {
         return res.status(400).json({

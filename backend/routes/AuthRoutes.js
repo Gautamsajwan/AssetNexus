@@ -3,6 +3,7 @@ import User from '../models/UserModel.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import 'dotenv/config'
+import { assetCache } from './FileRoutes.js'
 const router = express.Router()
 
 router.post('/createUser', async (req, res) => {
@@ -47,8 +48,8 @@ router.post('/createUser', async (req, res) => {
 
         const cookieOptions = {
             expires: expirationDate,
-            sameSite: "none",
-            secure: true,
+            sameSite: "none", // set it to Lax while running in local host
+            secure: true, // set it to false while running in local host
             httpOnly: false,
         };
 
@@ -99,6 +100,7 @@ router.post('/verifyUser', async (req, res) => {
         const payload = {
             userId: SearchUser._id
         };
+        
         const options = {
             expiresIn: "60m",
         };
@@ -111,12 +113,12 @@ router.post('/verifyUser', async (req, res) => {
 
         const cookieOptions = {
             expires: expirationDate,
-            sameSite: "none",
-            secure: true,
+            sameSite: "none", // set it to Lax while running in local host
+            secure: true, // set it to false while running in local host
             httpOnly: false,
         };
 
-        res.cookie("UserCookie", authToken, cookieOptions)
+        const cookie = res.cookie("UserCookie", authToken, cookieOptions)
 
         return res.json({
             success: true,
@@ -181,13 +183,15 @@ router.get("/logout", (req, res) => {
     console.log(expirationDate);
     const cookieOptions = {
         expires: expirationDate,
-        sameSite: "none",
+        sameSite: "false",
         secure: true,
         httpOnly: false,
     };
 
-    res.clearCookie("UserCookie", cookieOptions).status(200).json({
-        success: true, msg: "Successfully logged Out"
+    assetCache.flushAll();
+    return res.clearCookie("UserCookie", cookieOptions).status(200).json({
+        success: true, 
+        msg: "Successfully logged Out"
     })
 })
 

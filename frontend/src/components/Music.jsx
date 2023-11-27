@@ -12,7 +12,7 @@ function Music({source, fileName, musicId}) {
   const {setAssets} = useContext(DriveContext)
   const [loading, setLoading] = useState(false)
   
-  const onButtonClick = () => {
+  const handleDownload = () => {
     FileSaver.saveAs(source, fileName);
   }
   const handleDelete = async() => {
@@ -42,7 +42,7 @@ function Music({source, fileName, musicId}) {
     setLoading(false)
   }
   return (
-    <div className="relative group bg-gray-100 flex flex-col justify-center items-center rounded-lg overflow-hidden">
+    <div className="py-1 relative group bg-red-100 flex flex-col justify-between items-center rounded-xl overflow-hidden">
       <Backdrop
         sx={{ color: '#fff', backdropFilter: 'blur(3px)', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={loading}
@@ -50,12 +50,14 @@ function Music({source, fileName, musicId}) {
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      <FcMusic className="text-5xl p-2 text-red-500 bg-red-300 rounded-full mt-4 translate-y-2" />
-      <div className="p-[10px] w-24 h-12 flex gap-3 rounded-bl-lg absolute top-0 right-0 opacity-0 group-hover:opacity-100 group-hover:bg-gray-800/70 transition-opacity ease-in-out duration-300 z-20">
-          <HiOutlineDocumentDownload onClick={onButtonClick} className="w-full h-full hover:text-green-400 cursor-pointer"/>
-          <MdOutlineDeleteOutline onClick={handleDelete} className="w-full h-full hover:text-red-400 cursor-pointer"/>
+      <FcMusic className="text-5xl p-2 bg-red-300 rounded-full mt-3" />
+      <div className="p-[7px] w-[80px] h-10 flex gap-3 rounded-lg absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-gray-800/70 transition-opacity ease-in-out duration-300 z-20">
+        <HiOutlineDocumentDownload onClick={handleDownload} className="w-full h-full hover:text-green-400 cursor-pointer"/>
+        <MdOutlineDeleteOutline onClick={handleDelete} className="w-full h-full hover:text-red-400 cursor-pointer"/>
       </div>
-      <video src={source} controls className="aspect-video w-full h-24 p-2 flex items-center"></video>
+      <div className="mt-3 w-full h-14 flex items-center">
+        <audio src={source} controls className="px-[6px] py-1"></audio>
+      </div>
     </div>
   )
 }

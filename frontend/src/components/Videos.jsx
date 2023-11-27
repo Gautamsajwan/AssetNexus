@@ -11,7 +11,7 @@ function Videos({source, fileName, videoId}) {
   const {setAssets} = useContext(DriveContext)
   const [loading, setLoading] = useState(false)
 
-  const onButtonClick = () => {
+  const handleDownload = () => {
     FileSaver.saveAs(source, fileName);
   }
   const handleDelete = async() => {
@@ -27,12 +27,10 @@ function Videos({source, fileName, videoId}) {
       })
 
       const data = await response.json()
-      console.log(data)
       if(data.success) {
         toast.success("Successfully deleted the video")
-        
+
         const updatedAssets = data.updatedAssets
-        
         setAssets(prev => updatedAssets);
       } else {
         toast.error(data.msg)
@@ -43,7 +41,7 @@ function Videos({source, fileName, videoId}) {
     setLoading(false)
   }
   return (
-    <div className="relative group bg-gray-800 rounded-lg overflow-hidden">
+    <div className="relative group bg-gray-800 rounded-xl overflow-hidden">
       <Backdrop
         sx={{ color: '#fff', backdropFilter: 'blur(3px)', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={loading}
@@ -51,8 +49,8 @@ function Videos({source, fileName, videoId}) {
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      <div className="p-[10px] w-24 h-12 flex gap-3 rounded-bl-lg absolute top-0 right-0 opacity-0 group-hover:opacity-100 group-hover:bg-gray-800/70 transition-opacity ease-in-out duration-300 z-20">
-        <HiOutlineDocumentDownload onClick={onButtonClick} className="w-full h-full hover:text-green-400 cursor-pointer"/>
+      <div className="p-[7px] w-[80px] h-10 flex gap-3 rounded-lg absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-gray-800/70 transition-opacity ease-in-out duration-300 z-20">
+        <HiOutlineDocumentDownload onClick={handleDownload} className="w-full h-full hover:text-green-400 cursor-pointer"/>
         <MdOutlineDeleteOutline onClick={handleDelete} className="w-full h-full hover:text-red-400 cursor-pointer"/>
       </div>
       <video src={source} controls className="aspect-video w-full h-full"></video>

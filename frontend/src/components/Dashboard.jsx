@@ -20,6 +20,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [searchInput, setSearchInput] = useState("")
   const [clicked, setClicked] = useState(false)
+  const [searchSuccess, setSearchSuccess] = useState(false)
 
   useEffect(() => {
     const fetchAssets = async () => {
@@ -42,6 +43,7 @@ function Dashboard() {
         } else {
           console.log("error fetching assets")
         }
+        setSearchSuccess(false)
       } catch (error) {
         console.error(error)
       }
@@ -69,6 +71,10 @@ function Dashboard() {
 
   showAssets.reverse()
 
+  const handleSearchInput = (e) => {
+    setSearchInput(e.target.value)
+  }
+
   const handleSearch = async (e) => {
     e.preventDefault()
     try {
@@ -86,6 +92,7 @@ function Dashboard() {
       if (data.success) {
         toast.success(data.msg)
         setAssets(data.assets)
+        setSearchSuccess(true)
       } else {
         toast.error(data.msg)
       }
@@ -93,6 +100,11 @@ function Dashboard() {
       console.error(err)
     }
     setLoading(false)
+  }
+
+  const handleBack = () => {
+    setClicked(prev => !prev)
+    setSearchInput("")
   }
 
   return (
@@ -133,15 +145,17 @@ function Dashboard() {
       </motion.div>
 
       <div className="w-[70%] md:w-[80%]">
-        <form className="p-3 flex gap-2 items-center" onSubmit={handleSearch}>
-          <input type="text" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="p-2 indent-3 border-4 border-gray-800 text-white font-montserrat outline-none rounded-full bg-gray-700 flex-grow" placeholder='search tags like mountain, car etc.' />
+        <form className="mt-1 p-3 flex gap-3 items-center" onSubmit={handleSearch}>
+          <input type="text" value={searchInput} onChange={handleSearchInput} className="p-2 indent-3 border-4 border-gray-800 text-white font-montserrat outline-none rounded-full bg-gray-700 flex-grow" placeholder='search tags like mountain, car etc.' />
           <button type="submit" className="rounded-full bg-gray-700 p-2 outline outline-gray-800 group active:scale-95"> <LuSearch className="text-red-400 text-2xl group-hover:rotate-[45deg] group-hover:scale-125 transition duration-200 ease-in-out" /> </button>
         </form>
 
         <div
-          className="px-4 pt-2 pb-4 grid grid-cols-2 xl:grid-cols-3 gap-3">
+          className="px-4 pt-2 pb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {(showAssets.length) ? showAssets : <p className="font-montserrat font-bold text-center text-lg col-span-full">No Assets found</p>}
         </div>
+
+        {searchSuccess && <button onClick={handleBack} className="fixed bottom-7 right-1/4 w-32 font-montserrat font-bold px-3 py-2 rounded-full bg-gray-700/70 border-4 border-gray-300/20 z-20 hover:text-red-400">Back</button>}
       </div>
     </div>
   )

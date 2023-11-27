@@ -8,8 +8,10 @@ import Video from '../models/VideoModel.js'
 import Music from '../models/MusicModel.js'
 import Application from '../models/DocsModel.js'
 import fetchUser from '../middlewares/JWT.js'
+import NodeCache from 'node-cache'
 
 const router = express.Router()
+export const assetCache = new NodeCache({})
 
 router.post('/upload', upload.single('asset'), async (req, res) => {
     try {
@@ -29,14 +31,19 @@ router.post('/upload', upload.single('asset'), async (req, res) => {
         let SchemaToUse = schemaMapping[fileType];
 
         let folderName = ""
-        if (fileType === 'image')
+        if (fileType === 'image') {
             folderName = 'images'
-        else if (fileType === 'audio')
+            assetCache.has("images") && assetCache.del("images")
+        } else if (fileType === 'audio') {
             folderName = 'audios'
-        else if (fileType === 'video')
+            assetCache.has("music") && assetCache.del("music")
+        } else if (fileType === 'video') {
             folderName = 'videos'
-        else
+            assetCache.has("videos") && assetCache.del("videos")
+        } else {
             folderName = 'docs'
+            assetCache.has("docs") && assetCache.del("docs")
+        }
 
         const options = {
             resource_type: "auto",
@@ -51,7 +58,7 @@ router.post('/upload', upload.single('asset'), async (req, res) => {
             auto_tagging: .6
         }
 
-        const result = await cloudinary.uploader.upload(req.file.path, options)
+        const result = await cloudinary.uploader.upload(path, options)
         console.log("result => ", result)
         if (!result.secure_url) {
             res.status(500).json({
@@ -65,7 +72,6 @@ router.post('/upload', upload.single('asset'), async (req, res) => {
         const assetPublicId = result.public_id
         const tags = result.tags
 
-        let SearchBrand = await BrandModel.findOne({ brandName });
         let InsertAsset = null;
 
         let category = fileType[0].toUpperCase() + fileType.slice(1);
@@ -84,11 +90,12 @@ router.post('/upload', upload.single('asset'), async (req, res) => {
             assetPublicId: assetPublicId
         });
 
+        let SearchBrand = await BrandModel.findOne({ brandName });
+
         if (!SearchBrand) { // if no brand was found with the received name by api then create one
-            SearchBrand = await BrandModel.create({ brandName: brandName, [category]: [InsertAsset._id] });
-            SearchBrand = await BrandModel.findById(SearchBrand._id).populate(`${category}`);
+            SearchBrand = await BrandModel.create({ brandName: brandName, [category]: InsertAsset._id });
         } else {
-            SearchBrand = await BrandModel.findOneAndUpdate({ brandName: brandName }, { $push: { [category]: InsertAsset._id } }).populate(`${category}`);
+            SearchBrand = await BrandModel.findOneAndUpdate({ brandName: brandName }, { $push: { [category]: InsertAsset._id }});
         }
 
         fs.unlinkSync(path)
@@ -130,14 +137,19 @@ router.post('/multiple', upload.array('assets'), async (req, res) => {
             let SchemaToUse = schemaMapping[fileType];
 
             let folderName = ""
-            if (fileType === 'image')
+            if (fileType === 'image') {
                 folderName = 'images'
-            else if (fileType === 'audio')
+                assetCache.has("images") && assetCache.del("images")
+            } else if (fileType === 'audio') {
                 folderName = 'audios'
-            else if (fileType === 'video')
+                assetCache.has("music") && assetCache.del("music")
+            } else if (fileType === 'video') {
                 folderName = 'videos'
-            else
+                assetCache.has("videos") && assetCache.del("videos")
+            } else {
                 folderName = 'docs'
+                assetCache.has("docs") && assetCache.del("docs")
+            }
 
             const options = {
                 resource_type: "auto",
@@ -162,13 +174,11 @@ router.post('/multiple', upload.array('assets'), async (req, res) => {
             const assetPublicId = result.public_id
             const tags = result.tags
 
-            SearchBrand = await BrandModel.findOne({ brandName })
-            let InsertAsset = null;
-
             let category = fileType[0].toUpperCase() + fileType.slice(1);
             if (category === 'Audio')
                 category = 'Music'
 
+            let InsertAsset = null;
             InsertAsset = await SchemaToUse.create({
                 fileName: originalname,
                 fileType: mimetype,
@@ -181,11 +191,11 @@ router.post('/multiple', upload.array('assets'), async (req, res) => {
                 assetPublicId: assetPublicId
             });
 
+            SearchBrand = await BrandModel.findOne({ brandName })
             if (!SearchBrand) { // if no brand was found with the received name by api then create one
-                SearchBrand = await BrandModel.create({ brandName: brandName, [category]: [InsertAsset._id] });
-                SearchBrand = await BrandModel.findById(SearchBrand._id).populate(`${category}`);
+                SearchBrand = await BrandModel.create({ brandName: brandName, [category]: InsertAsset._id });
             } else {
-                SearchBrand = await BrandModel.findOneAndUpdate({ brandName: brandName }, { $push: { [category]: InsertAsset._id } }).populate(`${category}`);
+                SearchBrand = await BrandModel.findOneAndUpdate({ brandName: brandName }, { $push: { [category]: InsertAsset._id }});
             }
 
             fs.unlinkSync(path)
@@ -209,16 +219,21 @@ router.post('/multiple', upload.array('assets'), async (req, res) => {
 router.get('/assets/images', fetchUser, async (req, res) => {
     console.log("Image fetch request")
     try {
-        const { brandName } = req.query
-        console.log("Brand name: " + brandName);
+        let assets = null
 
-        const assets = await BrandModel.findOne({ brandName: brandName }).populate('Image')
+        if(assetCache.has("images")) {
+            assets = JSON.parse(assetCache.get("images"))
+        } else {
+            const { brandName } = req.query
+            assets = await BrandModel.findOne({ brandName: brandName }).populate('Image')
+            assetCache.set("images", JSON.stringify(assets), 600)
+        }
 
         if (!assets) {
             res.status(404).json({ error: "no assets found" })
             return
         }
-
+        
         res.status(200).json({
             success: true,
             msg: 'assets fetched successfully',
@@ -235,9 +250,15 @@ router.get('/assets/images', fetchUser, async (req, res) => {
 
 router.get('/assets/videos', fetchUser, async (req, res) => {
     try {
-        const { brandName } = req.query
+        let assets = null
 
-        const assets = await BrandModel.findOne({ brandName: brandName }).populate('Video')
+        if(assetCache.has("videos")) {
+            assets = JSON.parse(assetCache.get("videos"))
+        } else {
+            const { brandName } = req.query
+            assets = await BrandModel.findOne({ brandName: brandName }).populate('Video')
+            assetCache.set("videos", JSON.stringify(assets), 600)
+        }
 
         if (!assets) {
             res.status(404).json({ error: "no assets found" })
@@ -260,10 +281,16 @@ router.get('/assets/videos', fetchUser, async (req, res) => {
 
 router.get('/assets/music', fetchUser, async (req, res) => {
     try {
-        const { brandName } = req.query
+        let assets = null
 
-        const assets = await BrandModel.findOne({ brandName: brandName }).populate('Music')
-        console.log("assets get =", assets)
+        if(assetCache.has("music")) {
+            assets = JSON.parse(assetCache.get("music"))
+        } else {
+            const { brandName } = req.query
+            assets = await BrandModel.findOne({ brandName: brandName }).populate('Music')
+            assetCache.set("music", JSON.stringify(assets), 600)
+        }
+
         if (!assets) {
             res.status(404).json({ error: "no assets found" })
             return
@@ -285,10 +312,17 @@ router.get('/assets/music', fetchUser, async (req, res) => {
 
 router.get('/assets/docs', fetchUser, async (req, res) => {
     try {
-        const { brandName } = req.query
+        let assets = null
 
-        const assets = await BrandModel.findOne({ brandName: brandName }).populate('Application')
-        console.log(assets)
+        if(assetCache.has("docs")) {
+            assets = JSON.parse(assetCache.get("docs"))
+        } else {
+            const { brandName } = req.query
+
+            assets = await BrandModel.findOne({ brandName: brandName }).populate('Application')
+            assetCache.set('docs', JSON.stringify(assets), 600)
+        }
+
         if (!assets) {
             res.status(404).json({ error: "no assets found" })
             return
@@ -314,30 +348,23 @@ router.delete('/deleteOne/Image/:assetId', async (req, res) => {
         const { brandName } = req.body;
         const targetAsset = await Image.findById(assetId)
 
-        if (!targetAsset) {
-            res.status(404).json({
-                success: false,
-                msg: 'Asset not found'
-            })
-            return
-        }
-
         const publicId = targetAsset.assetPublicId
-        if (publicId) {
-            await cloudinary.uploader.destroy(publicId)
-        }
 
-        await targetAsset.deleteOne() // asset deleted
+        await cloudinary.uploader.destroy(publicId) // asset deleted from cloudinary
+        await targetAsset.deleteOne() // asset deleted from database
+
         const assets = await BrandModel.findOne({ brandName: brandName }).populate('Image')
+        
+        assetCache.del("images")
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             msg: 'Asset successfully deleted',
             updatedAssets: assets.Image
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: 'Internal server error'
         });
@@ -350,31 +377,23 @@ router.delete('/deleteOne/Video/:assetId', async (req, res) => {
         const { brandName } = req.body;
         const targetAsset = await Video.findById(assetId)
 
-        if (!targetAsset) {
-            res.status(404).json({
-                success: false,
-                msg: 'Asset not found'
-            })
-            return
-        }
-
         const publicId = targetAsset.assetPublicId
-        if (publicId) {
-            await cloudinary.uploader.destroy(publicId)
-        }
 
+        await cloudinary.uploader.destroy(publicId)
         await targetAsset.deleteOne()
 
         const assets = await BrandModel.findOne({ brandName: brandName }).populate('Video')
+        
+        assetCache.del("videos")
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             msg: 'Asset successfully deleted',
             updatedAssets: assets.Video
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: 'Internal server error'
         });
@@ -387,31 +406,23 @@ router.delete('/deleteOne/Music/:assetId', async (req, res) => {
         const { brandName } = req.body
         const targetAsset = await Music.findById(assetId)
 
-        if (!targetAsset) {
-            res.status(404).json({
-                success: false,
-                msg: 'Asset not found'
-            })
-            return
-        }
-
         const publicId = targetAsset.assetPublicId
-        if (publicId) {
-            await cloudinary.uploader.destroy(publicId)
-        }
 
+        await cloudinary.uploader.destroy(publicId)
         await targetAsset.deleteOne()
 
         const assets = await BrandModel.findOne({ brandName: brandName }).populate('Music')
+        
+        assetCache.del("music")
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             msg: 'Asset successfully deleted',
             updatedAssets: assets.Music
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: 'Internal server error'
         });
@@ -424,31 +435,22 @@ router.delete('/deleteOne/Doc/:assetId', async (req, res) => {
         const { brandName } = req.body
         const targetAsset = await Application.findById(assetId)
 
-        if (!targetAsset) {
-            res.status(404).json({
-                success: false,
-                msg: 'Asset not found'
-            })
-            return
-        }
-
         const publicId = targetAsset.assetPublicId
-        if (publicId) {
-            await cloudinary.uploader.destroy(publicId)
-        }
 
+        await cloudinary.uploader.destroy(publicId)
         await targetAsset.deleteOne()
-        const assets = await BrandModel.findOne({ userName: userName }).populate('Application')
+        const assets = await BrandModel.findOne({ brandName: brandName }).populate('Application')
 
+        assetCache.del("docs")
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             msg: 'Asset successfully deleted',
             updatedAssets: assets.Application
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: 'Internal server error'
         });
@@ -481,9 +483,7 @@ router.put('/updateImage/:assetId', upload.single('asset'), async (req, res) => 
         const targetImage = await Image.findById(assetId)
 
         const publicId = targetImage.assetPublicId
-        if (publicId) {
-            await cloudinary.uploader.destroy(publicId)
-        }
+        await cloudinary.uploader.destroy(publicId)
 
         const result = await cloudinary.uploader.upload(req.file.path)
         const assetURL = result.secure_url
@@ -498,18 +498,18 @@ router.put('/updateImage/:assetId', upload.single('asset'), async (req, res) => 
 
         fs.unlinkSync(req.file.path)
 
-        if (updatedImage) {
-            return (
-                res.status(200).json({
-                    success: true,
-                    msg: 'asset updated successfully'
-                })
-            )
+        if (!updatedImage) {
+            return res.status(400).json({
+                success: false,
+                msg: 'cant update asset'
+            })
         }
 
-        res.status(400).json({
-            success: false,
-            msg: 'cant update asset'
+        assetCache.del("images")
+
+        return res.status(200).json({
+            success: true,
+            msg: 'asset updated successfully'
         })
     } catch (err) {
         console.error(err)

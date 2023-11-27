@@ -108,7 +108,7 @@ function DropZone({ className }) {
     }
 
     // function 
-
+ 
     async function checkLoginStatus(){
         console.log("Login status")
         const save = document.cookie;

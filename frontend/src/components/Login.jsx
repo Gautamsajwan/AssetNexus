@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { BsEye } from 'react-icons/bs'
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 import LoginGraphics from './LoginGraphics';
 
@@ -68,6 +68,9 @@ function Login() {
           </div>
 
           <button onClick={handleLogin} className="mt-4 rounded-full w-fit m-auto font-bold px-10 py-2 outline outline-blue-500 hover:bg-blue-400 active:scale-95 transition duration-200 ease-in-out">Login</button>
+          <Link to="/signUp" className="flex">
+            <button className="mt-4 rounded-full w-fit m-auto font-bold px-10 py-2 outline outline-blue-500 hover:bg-blue-400 active:scale-95 transition duration-200 ease-in-out">Back to sign-up</button>
+          </Link>
         </form>
       </div>
     </div>

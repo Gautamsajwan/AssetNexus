@@ -12,16 +12,11 @@ const port = process.env.PORT || 5000 // port specified
 
 // middlewares ;-
 app.use(cors({
-    origin: ["https://asset-nexus.vercel.app"],
+    origin: [process.env.CORS_ORIGIN],
     methods: ["POST", "GET", "PUT", "DELETE"],
     credentials: true,
     exposedHeaders: ["Set-Cookie"]
 }))
-// app.use(cors({
-//     origin: ["http://localhost:5173"],
-//     methods: ["POST", "GET", "PUT", "DELETE"],
-//     credentials: true,
-// }))
 app.use(express.json())
 app.use(cookieParser())
 

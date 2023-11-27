@@ -18,7 +18,7 @@ function App() {
           {showModel && <Model />}
           <Routes>
             <Route exact path='/' element={<LandingPage />}/>
-            <Route exact path='/SignUp' element={<SignUp />} />
+            <Route exact path='/signUp' element={<SignUp />} />
             <Route exact path='/login' element={<Login />} />
             <Route exact path='/upload' element={[<Navbar key = "navbar" />, <FileUploader key="fileuploader" />]} />
             <Route exact path='/about' element={[<Navbar key = "navbar" />, <About key="about" />]} />
