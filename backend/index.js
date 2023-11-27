@@ -10,11 +10,9 @@ const app = express() // server created
 connectToMongo() // database connected
 const port = process.env.PORT || 5000 // port specified
 
-console.log(process.env.CORS_ORIGIN)
-
 // middlewares ;-
 app.use(cors({
-    origin: [process.env.CORS_ORIGIN],
+    origin: ["https://asset-nexus.vercel.app"], // use process.env.CORS_ORIGIN in local host
     methods: ["POST", "GET", "PUT", "DELETE"],
     credentials: true,
     exposedHeaders: ["Set-Cookie"]
